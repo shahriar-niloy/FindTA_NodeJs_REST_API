@@ -11,6 +11,7 @@ const app = express();
 const courseRouter = require('./courses');
 const utaRouter = require('./uta');
 const noticeRouter = require('./notice');
+const instructorRouter = require('./instructors');
 
 app.use(cookieParser());
 app.use(cors({ credentials: true, origin: 'http://localhost:3001' }));
@@ -19,6 +20,7 @@ app.use(bodyParser.json());
 app.use('/api/courses', courseRouter);
 app.use('/api/uta', utaRouter);
 app.use('/api/notice', noticeRouter);
+app.use('/api/instructors', instructorRouter);
 
 const conn = mysql.createConnection({
   host: "localhost",
@@ -30,6 +32,9 @@ const conn = mysql.createConnection({
 conn.connect(function(err) {
   if (err) throw err;
 });
+
+
+//--------login apicalls-------
 
 app.post("/api/login", (req, res) => {
   const username = req.body.username;
@@ -48,12 +53,6 @@ app.post("/api/login", (req, res) => {
     }
   });
 });
-
-
-
-
-
-//--------login apicalls-------
 
 app.get("/api/isLoggedIn", (req, res) => {
   const token = req.cookies['jwt'];
@@ -77,27 +76,6 @@ app.get("/api/logout", (req, res) => {
 app.listen(3000, () => {
   console.log("Listening on port 3000");
 });
-
-
-//--------------instructor related----------------
-app.get("/api/instructors/", (req, res) => {
-  conn.query(`SELECT * FROM instructor`, function(err, result, fields) {
-    if (err) throw err;
-    res.send(result);
-  });
-});
-
-app.get("/api/instructors/:id", (req, res) => {
-  conn.query(`SELECT * FROM instructor where id = ${req.params.id}`, function(
-    err,
-    result,
-    fields
-  ) {
-    if (err) throw err;
-    res.send(result);
-  });
-});
-
 
 //-----page stats related api calls ---------
 //------must need auth---------------
@@ -157,6 +135,7 @@ app.get("/api/stats/hello", (req, res) => {
 app.get("/api/stats/unique", auth, (req, res) => {
   conn.query(`SELECT value FROM STATS WHERE NAME = 'uniqueVisitors'`, (error, result, fields) => {
     if(error) throw error;
+    console.log(result);
     res.status(200).send(result[0].value.toString());
   });
 });
@@ -164,7 +143,7 @@ app.get("/api/stats/unique", auth, (req, res) => {
 app.get("/api/stats/served", auth, (req, res) => {
   conn.query(`SELECT SUM(COUNT) as count FROM VISITORS`, (error, result, fields) => {
     if(error) throw error;
-    console.log(result[0].count);
+    console.log(result);
     res.status(200).send(result[0].count.toString());
   });
 });
