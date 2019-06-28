@@ -10,6 +10,7 @@ const app = express();
 
 const courseRouter = require('./courses');
 const utaRouter = require('./uta');
+const noticeRouter = require('./notice');
 
 app.use(cookieParser());
 app.use(cors({ credentials: true, origin: 'http://localhost:3001' }));
@@ -17,6 +18,7 @@ app.use(bodyParser.json());
 
 app.use('/api/courses', courseRouter);
 app.use('/api/uta', utaRouter);
+app.use('/api/notice', noticeRouter);
 
 const conn = mysql.createConnection({
   host: "localhost",
@@ -48,51 +50,7 @@ app.post("/api/login", (req, res) => {
 });
 
 
-//---------notice related apicalls---------------
 
-app.post("/api/addNotice", auth, (req, res) => {
-  const { courseCode, section, subject, content } = req.body;
-  const date = new Date();
-  conn.query(`insert into notice (courseID, subject, content, date) values ((select id from courses where code = '${courseCode}' and sec = '${section}'), '${subject}', '${content}', '${date.toISOString().slice(0,10)}')`, (err, result, fileds) => {
-    if(err){
-      res.status(400);
-      res.send("Error Inserting Record");
-      throw err;
-    }else{
-      res.status(200);
-      res.send("Successfully inserted record");
-    }
-  });
-});
-
-app.get("/api/notice", (req, res) => {
-  conn.query("SELECT notice.id, courseID, code, subject, content, date, sec FROM notice, courses where courses.id = notice.courseID order by date desc", function(err, result, fields) {
-    if (err) throw err;
-    res.send(result);
-  });
-});
-
-app.get("/api/notice/course/:id", (req, res) => {
-  conn.query(`SELECT notice.id, courseID, code, subject, content, date, sec FROM notice, courses where notice.courseID = ${req.params.id} and courses.id = notice.courseID order by date desc`, function(err, result, fields) {
-    if (err) throw err;
-    res.status(200).send(result);
-  });
-});
-
-app.put("/api/notice/:id", (req, res) => {
-  const { subject, content, sec  } = req.body;
-  conn.query(`UPDATE NOTICE SET subject = '${subject}', content = '${content}' where id = ${req.params.id}`, (err, result ,field) => {
-    if(err) throw err;
-    res.status(200).send("success");
-  });
-});
-
-app.delete("/api/notice/:id", (req, res) => {
-  conn.query(`DELETE FROM NOTICE WHERE ID = ${req.params.id}`, (error, result, fields) => {
-    if (error) throw error;
-    res.status(200).send("delete successfull");
-  })
-});
 
 
 //--------login apicalls-------
