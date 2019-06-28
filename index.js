@@ -10,6 +10,7 @@ const utaRouter = require('./uta');
 const noticeRouter = require('./notice');
 const instructorRouter = require('./instructors');
 const statRouter = require('./pageStats');
+const configRouter = require('./config');
 const otherRouter = require('./other');
 
 app.use(cookieParser());
@@ -21,6 +22,7 @@ app.use('/api/uta', utaRouter);
 app.use('/api/notice', noticeRouter);
 app.use('/api/instructors', instructorRouter);
 app.use('/api/stats', statRouter);
+app.use('/api/config', configRouter);
 app.use('/api', otherRouter);
 
 const conn = mysql.createConnection({
