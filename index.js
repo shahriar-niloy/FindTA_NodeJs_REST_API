@@ -9,12 +9,14 @@ const config = require('./config/default.json');
 const app = express();
 
 const courseRouter = require('./courses');
+const utaRouter = require('./uta');
 
 app.use(cookieParser());
 app.use(cors({ credentials: true, origin: 'http://localhost:3001' }));
 app.use(bodyParser.json());
 
 app.use('/api/courses', courseRouter);
+app.use('/api/uta', utaRouter);
 
 const conn = mysql.createConnection({
   host: "localhost",
@@ -45,66 +47,6 @@ app.post("/api/login", (req, res) => {
   });
 });
 
-//-------------UTA related apicalls--------------
-
-app.get("/api/uta/", (req, res) => {
-  conn.query(`SELECT * FROM uta`, function(err, result, fields) {
-    if (err) throw err;
-    res.send(result);
-  });
-});
-
-app.get("/api/uta/:id", (req, res) => {
-  conn.query(`SELECT * FROM uta where id = ${req.params.id}`, function(
-    err,
-    result,
-    fields
-  ) {
-    if (err) throw err;
-    res.send(result);
-  });
-});
-
-app.get("/api/schedule/", (req, res) => { // get template office hour
-  conn.query(
-    `SELECT dayNum, day, TS1, TS2, TS3, TS4, TS5, TS6 FROM schedule where utaid = 0 and semester = 2 order by daynum`,
-    function(err, result, fields) {
-      if (err) throw err;
-      console.log(result);
-      res.send(result);
-    }
-  );
-});
-
-app.get("/api/schedule/:id", (req, res) => {
-  conn.query(
-    `SELECT utaid, dayNum, day, TS1, TS2, TS3, TS4, TS5, TS6 FROM schedule where utaid = ${
-      req.params.id
-    } and semester = 2 order by daynum`,
-    function(err, result, fields) {
-      if (err) throw err;
-      res.send(result);
-    }
-  );
-});
-
-app.post("/api/updateSchedule", auth, (req, res) => {
-  const data = req.body;
-  data.oh.map(item => {
-    conn.query(`insert into schedule 
-    (utaid, semester, dayNum, day, TS1, TS2, TS3, TS4, TS5, TS6)
-    values (${data.id},${2},${item.dayNum},'${item.day}','${item.TS1}','${item.TS2}','${item.TS3}','${item.TS4}','${item.TS5}','${item.TS6}')
-    on duplicate key update
-    day = '${item.day}', TS1 = '${item.TS1}', TS2 = '${item.TS2}', TS3 = '${item.TS3}', TS4 = '${item.TS4}', TS5 = '${item.TS5}', TS6 = '${item.TS6}'`, (err, result, fields) => {
-      if(err) {
-        console.log("Update Shcedule Error: " + err); 
-        res.status(500).send("Coudn't update schedule");
-        return;
-      }
-    });
-  });
-  res.status(200).send("Successfully updated schedule");
-});
 
 //---------notice related apicalls---------------
 
