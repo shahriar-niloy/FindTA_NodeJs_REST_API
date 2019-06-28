@@ -8,9 +8,13 @@ const auth = require('./auth');
 const config = require('./config/default.json');
 const app = express();
 
+const courseRouter = require('./courses');
+
 app.use(cookieParser());
 app.use(cors({ credentials: true, origin: 'http://localhost:3001' }));
 app.use(bodyParser.json());
+
+app.use('/api/courses', courseRouter);
 
 const conn = mysql.createConnection({
   host: "localhost",
@@ -38,93 +42,6 @@ app.post("/api/login", (req, res) => {
       res.status(400);
       res.send("Login Unsuccessful");
     }
-  });
-});
-
-//-------------Course related apicalls--------------
-
-app.get("/api/courses", (req, res) => {
-  conn.query("SELECT * FROM courses", function(err, result, fields) {
-    if (err) throw err;
-    res.send(result);
-  });
-});
-
-app.post("/api/courses/", auth, (req, res) => {
-  const { code, title, timeslot, section, picture } = req.body;
-  conn.query(`INSERT INTO COURSES ( CODE, TITLE, SEC, TIMESLOT, PIC ) VALUES ('${code}', '${title}', '${section}', '${timeslot}', '${picture}')`, (err, result, field) => {
-    if(err) throw err;
-    res.status(200).send(result);
-  });
-});
-
-app.get("/api/courses/:id", (req, res) => {
-  conn.query(`SELECT * FROM courses where id = ${req.params.id}`, function(err, result, fields) {
-    if (err) throw err;
-    console.log(result);
-    res.send(result);
-  });
-});
-
-app.delete("/api/courses/:id", auth, (req, res) => {
-  conn.query(`DELETE FROM courses where id = ${req.params.id}`, function(err, result, fields) {
-    if (err) {
-      res.status(401).send(result);
-      throw err;
-    }
-    res.status(200).send(result);
-  });
-});
-
-app.put("/api/courses/:id", auth, (req, res) => {
-  const { code, timeslot, title, sec } = req.body;
-  console.log("code: ", req.body);
-  conn.query(`UPDATE COURSES SET code = '${code}', timeslot = '${timeslot}', sec = ${sec}, title = '${title}' where id = ${req.params.id}`, function(err, result, fields) {
-    if (err) {
-      res.status(401).send(error);
-      throw err;
-    }
-    res.status(200).send(result);
-  });
-});
-
-app.get("/api/courseMaterials/:id", (req, res) => {
-  conn.query(`SELECT courseID, name, link FROM MATERIAL WHERE COURSEID = ${req.params.id}`, (err, result, fields) => {
-    if(err) throw err;
-    //console.log(result)
-    if(result)
-      res.send(result);
-    else 
-      res.send({});
-  });
-});
-
-app.put("/api/courseMaterials/:id", auth, (req, res) => {
-  const material = req.body;
-  let err = false;
-  conn.query(`delete from material where courseID = ${req.params.id}`, (error, result, fields) => {
-    if(error) {
-      err = true;
-      throw error; 
-    }
-  });
-  material.map((row) => {
-    conn.query(`INSERT INTO material (courseID, name, link)
-                VALUES (${req.params.id}, '${row.name}', '${row.link}')`, (error, result, fields) => {
-      if(error) {
-        throw error; 
-        err = true;
-      }
-    });
-  });
-});
-
-app.delete("/api/courseMaterials/delete/:courseID/:name/", auth, (req, res) => {
-  const { courseID, name } = req.params;
-  console.log(courseID, name);
-  conn.query(`DELETE FROM MATERIAL WHERE COURSEID = ${courseID} AND NAME = '${name}'`, (error, result, fields) => {
-    if(error) throw error;
-    res.status(200).send({});
   });
 });
 
