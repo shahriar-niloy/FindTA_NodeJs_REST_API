@@ -14,7 +14,7 @@ router.post("/login", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   conn.query(
-    `SELECT * FROM users where username = '${username}' and password = '${password}' `,
+    `SELECT * FROM users where username = ? and password = ? `, [username, password],
     function(err, result, fields) {
       if (err) throw err;
       if (result.length > 0) {
