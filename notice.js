@@ -10,15 +10,13 @@ const conn = mysql.createConnection({
   database: "findta"
 });
 
-//---------notice related apicalls---------------
-
 router.post("", auth, (req, res) => {
   const { courseCode, section, subject, content } = req.body;
   const date = new Date();
   conn.query(
-    `insert into notice (courseID, subject, content, date) values ((select id from courses where code = '${courseCode}' and sec = '${section}'), '${subject}', '${content}', '${date
+    `insert into notice (courseID, subject, content, date) values ((select id from courses where code = ? and sec = ?), ?, ?, '${date
       .toISOString()
-      .slice(0, 10)}')`,
+      .slice(0, 10)}')`, [courseCode, section, subject, content],
     (err, result, fileds) => {
       if (err) {
         res.status(400);
@@ -44,10 +42,7 @@ router.get("", (req, res) => {
 
 router.get("/course/:id", (req, res) => {
   conn.query(
-    `SELECT notice.id, courseID, code, subject, content, date, sec FROM notice, courses where notice.courseID = ${
-      req.params.id
-    } and courses.id = notice.courseID order by date desc`,
-    function(err, result, fields) {
+    `SELECT notice.id, courseID, code, subject, content, date, sec FROM notice, courses where notice.courseID = ? and courses.id = notice.courseID order by date desc`, [req.params.id], function(err, result, fields) {
       if (err) throw err;
       res.status(200).send(result);
     }
@@ -57,9 +52,7 @@ router.get("/course/:id", (req, res) => {
 router.put("/:id", (req, res) => {
   const { subject, content, sec } = req.body;
   conn.query(
-    `UPDATE NOTICE SET subject = '${subject}', content = '${content}' where id = ${
-      req.params.id
-    }`,
+    `UPDATE NOTICE SET subject = ?, content = ? where id = ?`, [subject, content, req.params.id],
     (err, result, field) => {
       if (err) throw err;
       res.status(200).send("success");
@@ -69,7 +62,7 @@ router.put("/:id", (req, res) => {
 
 router.delete("/:id", (req, res) => {
   conn.query(
-    `DELETE FROM NOTICE WHERE ID = ${req.params.id}`,
+    `DELETE FROM NOTICE WHERE ID = ?`, [req.params.id],
     (error, result, fields) => {
       if (error) throw error;
       res.status(200).send("delete successfull");

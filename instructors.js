@@ -18,7 +18,7 @@ router.get("", (req, res) => {
 });
 
 router.get("/:id", (req, res) => {
-  conn.query(`SELECT * FROM instructor where id = ${req.params.id}`, function(
+  conn.query(`SELECT * FROM instructor where id = ?`, [req.params.id], function(
     err,
     result,
     fields
