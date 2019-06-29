@@ -10,7 +10,6 @@ const conn = mysql.createConnection({
   database: "findta"
 });
 
-//-------------UTA related apicalls--------------
 
 router.get("", (req, res) => {
   conn.query(`SELECT * FROM uta`, function(err, result, fields) {
@@ -20,7 +19,7 @@ router.get("", (req, res) => {
 });
 
 router.get("/:id", (req, res) => {
-  conn.query(`SELECT * FROM uta where id = ${req.params.id}`, function(
+  conn.query(`SELECT * FROM uta where id = ?`, [req.params.id], function(
     err,
     result,
     fields
@@ -44,9 +43,8 @@ router.get("/schedule/", (req, res) => {
 
 router.get("/schedule/:id", (req, res) => {
   conn.query(
-    `SELECT utaid, dayNum, day, TS1, TS2, TS3, TS4, TS5, TS6 FROM schedule where utaid = ${
-      req.params.id
-    } and semester = 2 order by daynum`,
+    `SELECT utaid, dayNum, day, TS1, TS2, TS3, TS4, TS5, TS6 FROM schedule where utaid = ? and semester = 2 order by daynum`,
+    [req.params.id],
     function(err, result, fields) {
       if (err) throw err;
       res.send(result);
@@ -60,13 +58,10 @@ router.post("/updateSchedule", auth, (req, res) => {
     conn.query(
       `insert into schedule 
       (utaid, semester, dayNum, day, TS1, TS2, TS3, TS4, TS5, TS6)
-      values (${data.id},${2},${item.dayNum},'${item.day}','${item.TS1}','${
-        item.TS2
-      }','${item.TS3}','${item.TS4}','${item.TS5}','${item.TS6}')
+      values (?,2,?,?,?,?,?,?,?,?)
       on duplicate key update
-      day = '${item.day}', TS1 = '${item.TS1}', TS2 = '${item.TS2}', TS3 = '${
-        item.TS3
-      }', TS4 = '${item.TS4}', TS5 = '${item.TS5}', TS6 = '${item.TS6}'`,
+      day = ?, TS1 = ?, TS2 = ?, TS3 = ?, TS4 = ?, TS5 = ?, TS6 = ?`,
+      [data.id, item.dayNum, item.day, item.TS1, item.TS2, item.TS3, item.TS4, item.TS5, item.TS6, item.day, item.TS1, item.TS2, item.TS3, item.TS4, item.TS5, item.TS6],
       (err, result, fields) => {
         if (err) {
           console.log("Update Shcedule Error: " + err);
