@@ -84,6 +84,8 @@ router.put("/materials/:id", auth, (req, res) => {
       }
     });
   });
+  res.status(200).send("Updated Course Materials");
+  console.log("Update course material end");
 });
 
 router.delete("/materials/delete/:courseID/:name/", auth, (req, res) => {
